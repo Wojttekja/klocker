@@ -1,34 +1,37 @@
-import pygame
+from pygame import joystick, init, event
 from time import sleep
 import RPi.GPIO as GPIO
 
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-GPIO.setup(17, GPIO.OUT)
-serwo = GPIO.PWM(17, 50)
-serwo.start(7.5)
+GPIO.setup(12, GPIO.OUT)
+serwoL = GPIO.PWM(12, 50) #Nowa instancja PWM
+serwoL.start(1.4/20*100) #Uruchomienie sygnału PWM
+GPIO.setup(13, GPIO.OUT)
+serwoR = GPIO.PWM(13, 50)
+serwoR.start(1.4/20*100)
 
-pygame.init()
+serwoL.ChangeDutyCycle(1.4/20*100)
+serwoR.ChangeDutyCycle(1.4/20*100)
+
+init()
 while True:
-    if pygame.joystick.get_count() > 0:
+    if joystick.get_count() > 0:
         break   
     print("No controller detected")
     sleep(0.5)
-print(f"Found {pygame.joystick.get_count()} joystick")
-js = pygame.joystick.Joystick(0)
+print(f"Found {joystick.get_count()} joystick")
+js = joystick.Joystick(0)
 name = js.get_name()
 js.init()
 print(f"connected to {name}")
 
 loop = True
 while loop:
-    pygame.event.clear()
-    if js.get_button(1) == 1:
-        print("DOSC")
-        serwo.stop()
-        GPIO.cleanup()
-        loop = False
-    print(round(js.get_axis(0),1), (-(round(js.get_axis(0), 1))+1.5)/20)
-    serwo.ChangeDutyCycle((-(round(js.get_axis(0), 1))+1.5)/20)
-    sleep(0.01)
+    event.clear()
+    print(f"Lewe: {(round(js.get_axis(1), 2)+1.5)/20*100} \t Prawe: {(round(js.get_axis(3), 2)+1.5)/20*100}")
+    # print(f"Lewe: {js.get_axis(1)} \t Prawe: {js.get_axis(3)}")
+    serwoL.ChangeDutyCycle((round(js.get_axis(1), 2)+1.5)/20*100)
+    serwoR.ChangeDutyCycle((round(js.get_axis(3), 2)+1.5)/20*100)
+    sleep(0.2)
